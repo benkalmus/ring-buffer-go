@@ -68,6 +68,20 @@ func (r *RingBuffer[T]) Peek() (T, error) {
 	return elem, nil
 }
 
+func (r *RingBuffer[T]) Capacity() int {
+	return cap(r.data)
+}
+
+func (r *RingBuffer[T]) Length() int {
+	if r.front == r.back && r.isFull {
+		return r.Capacity()
+	}
+	if r.front >= r.back {
+		return r.front - r.back
+	}
+	return r.Capacity() - (r.back - r.front)
+}
+
 // a function that moves a pointer forward around the circle buffer
 func increment(val *int, max int) {
 	// if reached end of slice, return to 0

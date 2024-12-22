@@ -100,7 +100,7 @@ func TestRingBuffer(t *testing.T) {
 		_, err = buffer.Pop()
 		AssertIsError(t, err)
 	})
-	t.Run("push pop", func(t *testing.T) {
+	t.Run("push pop loop", func(t *testing.T) {
 		elems := []int{1, 2, 3, 4, 5}
 		buffer := NewRingBuffer[int](len(elems))
 
@@ -116,6 +116,42 @@ func TestRingBuffer(t *testing.T) {
 		// pushing one more time should give an error
 		_, err := buffer.Pop()
 		AssertIsError(t, err)
+	})
+	t.Run("peek doesn't remove items", func(t *testing.T) {
+		elem := 6
+		buffer := NewRingBuffer[int](capacity)
+
+		err := buffer.Push(elem)
+		AssertEqual(t, nil, err)
+
+		got, err := buffer.Peek()
+		AssertEqual(t, nil, err)
+		AssertEqual(t, elem, got)
+		// we can peek the same item twice without removing it from buffer
+		gotSame, err := buffer.Peek()
+		AssertEqual(t, nil, err)
+		AssertEqual(t, elem, gotSame)
+
+		popped, err := buffer.Pop()
+		AssertEqual(t, nil, err)
+		AssertEqual(t, elem, popped)
+	})
+	t.Run("check buffer length and capacity", func(t *testing.T) {
+		elems := []int{1, 2, 3, 4}
+		buffer := NewRingBuffer[int](len(elems))
+		length := buffer.Length()
+		AssertEqual(t, 0, length)
+		AssertEqual(t, len(elems), buffer.Capacity())
+		for i, val := range elems {
+			_ = buffer.Push(val)
+			got := buffer.Length()
+			AssertEqual(t, i+1, got)
+		}
+
+		buffer.Pop()
+		AssertEqual(t, len(elems)-1, buffer.Length())
+		buffer.Push(1)
+		AssertEqual(t, len(elems), buffer.Length())
 	})
 }
 
